@@ -69,10 +69,10 @@ class GUI:
             self.displayImage()
 
     def countLight(self):
-        pass
+        self.image_processor.countLightPollens()
 
     def countDark(self):
-        pass
+        self.image_processor.countDarkPollens()
 
     def displayImage(self):
         im = Image.fromarray(self.image_processor.display_img)

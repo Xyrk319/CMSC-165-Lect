@@ -1,6 +1,5 @@
 import cv2 as cv
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 class ImageProcessor():
@@ -15,17 +14,17 @@ class ImageProcessor():
         self.count_light_polen = None
 
         # load image
-        self.img = cv.imread(self.PATH)
+        self.__img = cv.imread(self.PATH)
 
         # this image can be used to display in the GUI
-        self.display_img = self.img.copy()
+        self.display_img = self.__img.copy()
 
         # rescale the image so that the masks will be able to accomodate different sizes
-        scale = 1/(self.img.shape[1] / 1000)
-        self.img = cv.resize(self.img, (0, 0), fx=scale, fy=scale)
+        scale = 1/(self.__img.shape[1] / 1000)
+        self.__img = cv.resize(self.__img, (0, 0), fx=scale, fy=scale)
 
         # an image copy for the clean background version
-        self.clean_background_img = None
+        self.__clean_background_img = None
 
         # holder for the image of the pollens
         self.dark_pollens = None
@@ -37,12 +36,20 @@ class ImageProcessor():
     def run(self):
 
         # clean the background of the image so that the remaining colors will be the two pollens
-        self.cleanBackground()
+        self.__cleanBackground()
+        self.__pseudoColoring()
 
-        self.pseudoColoring()
+    # for specific count pollen purposes
 
-        self.countObjects(self.dark_pollens, 'Dark')
-        self.countObjects(self.light_pollens, 'Light')
+    def countDarkPollens(self):
+        self.__countObjects(self.dark_pollens, 'Dark')
+
+    def countLightPollens(self):
+        self.__countObjects(self.light_pollens, 'Light')
+
+    def countBothPollens(self):
+        self.__countObjects(self.dark_pollens, 'Dark')
+        self.__countObjects(self.dark_pollens, 'Light')
 
     def showImage(self, img):
 
@@ -53,21 +60,11 @@ class ImageProcessor():
         # destroy all windows created
         cv.destroyAllWindows()
 
-    def binarize(self):
-
-        # hsv = cv.cvtColor(self.img, cv.COLOR_BGR2HSV)
-        lower_range = np.array([0, 0, 0])
-        upper_range = np.array([0, 0, 255])
-
-        mask = cv.inRange(self.hsv_image, lower_range, upper_range)
-
-        return mask
-
     # returns a white background
-    def cleanBackground(self):
+    def __cleanBackground(self):
 
         # create a gray image copy
-        colored_image = self.img.copy()
+        colored_image = self.__img.copy()
         gray_image = cv.cvtColor(colored_image, cv.COLOR_BGR2GRAY)
 
         # OTSU Threshold which properly separates the foreground from the background
@@ -82,14 +79,14 @@ class ImageProcessor():
             colored_image, colored_image, mask=inverted_mask)
 
         # convert the black pixels to white
-        self.changePixelsBlackToWhite(result)
+        self.__changePixelsBlackToWhite(result)
 
-        self.clean_background_img = result
+        self.__clean_background_img = result
 
-    def pseudoColoring(self):
+    def __pseudoColoring(self):
 
         # convert to HSV for easier detection of the color range
-        img = self.clean_background_img.copy()
+        img = self.__clean_background_img.copy()
         hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
 
         # dark pollen - hue for the dark pinkish violet is from 120-170
@@ -100,19 +97,19 @@ class ImageProcessor():
         mask = cv.inRange(hsv, lower_dark, upper_dark)
 
         # Get the dark pollens only
-        dark_result = cv.bitwise_and(self.clean_background_img,
-                                     self.clean_background_img, mask=mask)
+        dark_result = cv.bitwise_and(self.__clean_background_img,
+                                     self.__clean_background_img, mask=mask)
 
         # light pollen mask
         inverted_mask = cv.bitwise_not(mask)
 
         # get the light pollens only
-        light_result = cv.bitwise_and(self.clean_background_img,
-                                      self.clean_background_img, mask=inverted_mask)
+        light_result = cv.bitwise_and(self.__clean_background_img,
+                                      self.__clean_background_img, mask=inverted_mask)
 
         # fix the black pixels, standardize all of the background to white
-        self.changePixelsBlackToWhite(dark_result)
-        self.changePixelsBlackToWhite(light_result)
+        self.__changePixelsBlackToWhite(dark_result)
+        self.__changePixelsBlackToWhite(light_result)
 
         # remove noises on black using mean filter mask
         noiseless_dark_result = cv.fastNlMeansDenoisingColored(
@@ -131,7 +128,7 @@ class ImageProcessor():
 
         self.light_pollens = noiseless_light_result
 
-    def changePixelsBlackToWhite(self, img):
+    def __changePixelsBlackToWhite(self, img):
         black_pixels = np.where(
             (img[:, :, 0] == 0) &
             (img[:, :, 1] == 0) &
@@ -141,7 +138,7 @@ class ImageProcessor():
         # set those pixels to white
         img[black_pixels] = [255, 255, 255]
 
-    def changePixelsColoredToBlack(self, img):
+    def __changePixelsColoredToBlack(self, img):
         black_pixels = np.where(
             (img[:, :, 0] != 0) &
             (img[:, :, 1] != 0) &
@@ -152,7 +149,7 @@ class ImageProcessor():
         img[black_pixels] = [0, 0, 0]
 
     # will count the number of objects within an image
-    def countObjects(self, image, label):
+    def __countObjects(self, image, label):
 
         img = image.copy()
         img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -174,3 +171,9 @@ class ImageProcessor():
         # self.showImage(contour_img)
 
         print(f'Number of {label} Pollens', len(contours))
+
+        # for saving the values of the count
+        if (label == "Dark"):
+            self.count_dark_polen = len(contours)
+        elif (label == "Light"):
+            self.count_light_polen = len(contours)
