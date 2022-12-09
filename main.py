@@ -8,4 +8,4 @@ PRACTICE_IMAGE_2 = "assets/practice_image_2.jpg"
 
 # run = GUI()
 
-imageProcessor = ImageProcessor(PRACTICE_IMAGE_1)
+imageProcessor = ImageProcessor(PRACTICE_IMAGE_2)

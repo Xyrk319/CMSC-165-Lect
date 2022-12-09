@@ -104,13 +104,18 @@ class ImageProcessor():
         # denoising
         noiseless_dark_result = cv.fastNlMeansDenoisingColored(
             dark_result, None, 20, 20, 11, 31)
+
+        # filter mask
+        struct_width = cv.getStructuringElement(cv.MORPH_CROSS, (2, 3))
+        light_result = cv.dilate(light_result, struct_width,
+                                 iterations=2)
         noiseless_light_result = cv.fastNlMeansDenoisingColored(
             light_result, None, 20, 20, 11, 31)
 
         self.dark_pollens = noiseless_dark_result
 
         self.light_pollens = noiseless_light_result
-        self.showImage(self.light_pollens)
+        # self.showImage(self.light_pollens)
 
     def changePixelsBlackToWhite(self, img):
         black_pixels = np.where(
@@ -137,11 +142,11 @@ class ImageProcessor():
         img = image.copy()
         img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
         # blurring the image
-        blur = cv.GaussianBlur(img, (11, 11), 0)
+        # blur = cv.GaussianBlur(img, (11, 11), 0)
         # self.showImage(blur)
 
         # canny edge detection
-        canny = cv.Canny(blur, 30, 150, 3)
+        canny = cv.Canny(img, 30, 150, 3)
 
         # binary dilation
         dilated = cv.dilate(canny, (1, 1), iterations=2)
