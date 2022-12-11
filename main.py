@@ -7,5 +7,7 @@ PRACTICE_IMAGE_1 = "assets/practice_image_1.jpg"
 PRACTICE_IMAGE_2 = "assets/practice_image_2.jpg"
 
 run = GUI()
+run.draw()
+run.window.mainloop()
 
 # imageProcessor = ImageProcessor(PRACTICE_IMAGE_2)

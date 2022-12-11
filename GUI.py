@@ -1,55 +1,63 @@
-from tkinter import filedialog
 from tkinter import *
-from tkinter import ttk
+from customtkinter import *
 from PIL import ImageTk, Image
 from ImageProcessor import ImageProcessor
 
 
 class GUI:
-
     def __init__(self):
-
-        # attributes here
-        self.window = Tk()
-        self.window.title("CMSC 165 - Lecture Project")
-        self.window.geometry("1200x780")
+        set_appearance_mode("dark")
+        set_default_color_theme("green")
+        self.window = CTk()
         self.image_processor = None
-
         self.image_path = None
+        self.input_image = False
 
-        # File opener
-        self.file_opened = False
+        # fonts
+        self.header_font = CTkFont(size=24, weight="bold")
+        self.normal_font = CTkFont(size=16)
+        self.count_font = CTkFont(size=18, weight="bold")
 
-        # File Explorer
-        self.file_frame = Frame(self.window, width=450,
-                                height=50, relief="sunken", background="black")
-        self.file_frame.place(x=10, y=15)
-        self.file_btn = Button(self.file_frame, text="Open File",
-                               command=self.fileOpener, pady=5).pack()
+        # variables
+        self.dark_number = StringVar(self.window)
+        self.light_number = StringVar(self.window)
 
-        # count pollens
-        # frame
-        self.button_frame = Frame(self.window)
+        # frames
+        self.image_frame = CTkFrame(self.window, width=650, height=400)
+        self.sidebar_frame = CTkFrame(self.window, width=200, corner_radius=0)
+        self.light_frame = CTkFrame(self.sidebar_frame, width=160, height=32)
+        self.dark_frame = CTkFrame(self.sidebar_frame, width=160, height=32)
 
-        self.button_frame.place(x=10, y=50)
+        self.header1 = CTkLabel(self.sidebar_frame, text="Statistics:", font=self.header_font)
+        self.light_header = CTkLabel(self.light_frame, text=self.light_number, font=self.count_font)
+        self.dark_header = CTkLabel(self.dark_frame, text=self.dark_number, font=self.count_font)
 
         # buttons
-        self.count_light_pollen = Button(
-            self.button_frame, text="Count Light Pollen", command=self.countLight, padx=5, pady=5).pack(pady=10)
-        self.count_dark_pollen = Button(
-            self.button_frame, text="Count Dark Pollen", command=self.countDark, padx=5, pady=5).pack(pady=10)
+        self.file_btn = CTkButton(self.window, text="Open File", font=self.normal_font, command=self.fileOpener)
+        self.count_light_button = CTkButton(
+            self.sidebar_frame, text="Count Light Pollen", font=self.normal_font, command=self.countLight
+        )
+        self.count_dark_button = CTkButton(
+            self.sidebar_frame, text="Count Dark Pollen", font=self.normal_font, command=self.countDark
+        )
 
-        # textbox
+    def draw(self):
+        self.window.title("CMSC 165 - Lecture Project")
 
-        # images
+        self.image_frame.grid(sticky="w", row=0, column=0, columnspan=4, padx=20, pady=20)
+        # self.image_frame.grid_propagate(False)
+        self.sidebar_frame.grid(row=0, column=4, rowspan=4, sticky="nesw")
+        self.sidebar_frame.grid_propagate(False)
 
-        self.image_frame = Frame(self.window, width=650,
-                                 height=500, relief="sunken", background="white")
-        self.image_frame.place(x=500, y=15)
-        self.img = None
+        self.file_btn.grid(sticky="w", row=1, column=0, padx=20, pady=(0, 20))
 
-        # MAIN LOOP
-        self.window.mainloop()
+        self.header1.grid(row=0, column=0, padx=20, pady=(20, 20))
+        self.light_frame.grid(row=1, column=0, padx=20)
+        self.light_frame.grid_propagate(False)
+        self.count_light_button.grid(row=2, column=0, padx=20, pady=(10, 40))
+        self.dark_frame.grid(row=3, column=0, padx=20)
+        self.dark_frame.grid_propagate(False)
+        self.count_dark_button.grid(row=4, column=0, padx=20, pady=(10, 40))
 
     def loadImageProcessor(self, path):
         self.image_processor = ImageProcessor(path)
@@ -58,8 +66,11 @@ class GUI:
 
         # open a file explorer
         # get the file name of the selected file by the user
-        filename = filedialog.askopenfilename(initialdir="./", title="Select a File", filetypes=(
-            ("JPG Files", "*.jpg"), ("JPEG Files", "*.jpeg"), ("PNG Files", "*.png")))
+        filename = filedialog.askopenfilename(
+            initialdir="./assets/",
+            title="Select a File",
+            filetypes=(("JPG Files", "*.jpg"), ("JPEG Files", "*.jpeg"), ("PNG Files", "*.png")),
+        )
 
         # if the file open is succesful
         if filename:
@@ -67,15 +78,31 @@ class GUI:
             self.image_path = filename
             self.loadImageProcessor(filename)
             self.displayImage()
+            self.dark_number.set(None)
+            self.light_number.set(None)
+            self.input_image = True
+            txt = ""
+            self.updateCount(txt, self.light_header)
+            self.updateCount(txt, self.dark_header)
 
     def countLight(self):
-        self.image_processor.countLightPollens()
+        if self.input_image != False:
+            self.light_number.set(100)  # connect to backend to get value
+            txt = self.light_number.get()
+            self.updateCount(txt, self.light_header)
 
     def countDark(self):
-        self.image_processor.countDarkPollens()
+        if self.input_image != False:
+            self.dark_number.set(300)  # connect to backend to get value
+            txt = self.dark_number.get()
+            self.updateCount(txt, self.dark_header)
+
+    def updateCount(self, count, header):
+        header.configure(text=count, justify="center")
+        header.grid(row=0, column=0, padx=3, pady=3)
 
     def displayImage(self):
         im = Image.fromarray(self.image_processor.display_img)
         self.img = ImageTk.PhotoImage(image=im)
         label = Label(self.image_frame, image=self.img)
-        label.pack()
+        label.grid(row=0, column=0, padx=3, pady=3, sticky="nesw")
