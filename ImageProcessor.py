@@ -10,18 +10,19 @@ class ImageProcessor():
         self.PATH = path
 
         # Holder for the counts of pollen
-        self.count_dark_polen = None
-        self.count_light_polen = None
+        self.count_dark_pollens = None
+        self.count_light_pollens = None
 
         # load image
         self.__img = cv.imread(self.PATH)
 
         # this image can be used to display in the GUI
-        self.display_img = self.__img.copy()
 
         # rescale the image so that the masks will be able to accomodate different sizes
         scale = 1/(self.__img.shape[1] / 1000)
         self.__img = cv.resize(self.__img, (0, 0), fx=scale, fy=scale)
+
+        self.display_img = self.__img.copy()
 
         # an image copy for the clean background version
         self.__clean_background_img = None
@@ -42,14 +43,18 @@ class ImageProcessor():
     # for specific count pollen purposes
 
     def countDarkPollens(self):
-        self.__countObjects(self.dark_pollens, 'Dark')
+        self.count_dark_pollens = self.__countObjects(
+            self.dark_pollens, 'Dark')
 
     def countLightPollens(self):
-        self.__countObjects(self.light_pollens, 'Light')
+        self.count_light_pollens = self.__countObjects(
+            self.light_pollens, 'Light')
 
     def countBothPollens(self):
-        self.__countObjects(self.dark_pollens, 'Dark')
-        self.__countObjects(self.dark_pollens, 'Light')
+        self.count_dark_pollens = self.__countObjects(
+            self.dark_pollens, 'Dark')
+        self.count_light_pollens = self.__countObjects(
+            self.dark_pollens, 'Light')
 
     def showImage(self, img):
 
@@ -170,10 +175,7 @@ class ImageProcessor():
         # contour_img = cv.drawContours(rgb, contours, -1, (0, 255, 0), 2)
         # self.showImage(contour_img)
 
-        print(f'Number of {label} Pollens', len(contours))
+        # print(f'Number of {label} Pollens', len(contours))
 
         # for saving the values of the count
-        if (label == "Dark"):
-            self.count_dark_polen = len(contours)
-        elif (label == "Light"):
-            self.count_light_polen = len(contours)
+        return len(contours)
