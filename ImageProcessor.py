@@ -171,11 +171,14 @@ class ImageProcessor():
         contours, hierarchy = cv.findContours(
             dilated.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
         # check the contours detected
-        # rgb = cv.cvtColor(img, cv.COLOR_BGR2RGB)
-        # contour_img = cv.drawContours(rgb, contours, -1, (0, 255, 0), 2)
-        # self.showImage(contour_img)
+        rgb = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+        self.display_img = cv.drawContours(
+            rgb, contours, -1, (0, 255, 0), 2)
 
         # print(f'Number of {label} Pollens', len(contours))
 
         # for saving the values of the count
         return len(contours)
+
+    def resetDisplayImage(self):
+        self.display_img = self.__img

@@ -37,7 +37,10 @@ class GUI:
 
         # buttons
         self.file_btn = CTkButton(
-            self.window, text="Open File", font=self.normal_font, command=self.fileOpener)
+            self.sidebar_frame, text="Open File", font=self.normal_font, command=self.fileOpener)
+        self.reset_button = CTkButton(
+            self.sidebar_frame, text="Reset", font=self.normal_font, command=self.resetImage
+        )
         self.count_light_button = CTkButton(
             self.sidebar_frame, text="Count Light Pollen", font=self.normal_font, command=self.countLight
         )
@@ -54,7 +57,8 @@ class GUI:
         self.sidebar_frame.grid(row=0, column=4, rowspan=4, sticky="nesw")
         self.sidebar_frame.grid_propagate(False)
 
-        self.file_btn.grid(sticky="w", row=1, column=0, padx=20, pady=(0, 20))
+        self.file_btn.grid(row=6, column=0, padx=20, pady=(5, 0))
+        self.reset_button.grid(row=7, column=0, padx=20, pady=(5, 40))
 
         self.header1.grid(row=0, column=0, padx=20, pady=(20, 20))
         self.light_frame.grid(row=1, column=0, padx=20)
@@ -62,7 +66,8 @@ class GUI:
         self.count_light_button.grid(row=2, column=0, padx=20, pady=(10, 40))
         self.dark_frame.grid(row=3, column=0, padx=20)
         self.dark_frame.grid_propagate(False)
-        self.count_dark_button.grid(row=4, column=0, padx=20, pady=(10, 40))
+        self.count_dark_button.grid(row=4, column=0, padx=20, pady=(
+            10, 100))
 
     def loadImageProcessor(self, path):
         self.image_processor = ImageProcessor(path)
@@ -97,6 +102,8 @@ class GUI:
             # connect to backend to get value
             self.light_number.set(self.image_processor.count_light_pollens)
             txt = self.light_number.get()
+            # change image to light pollens detected
+            self.displayImage()
             self.updateCount(txt, self.light_header)
 
     def countDark(self):
@@ -105,14 +112,26 @@ class GUI:
             self.image_processor.countDarkPollens()
             self.dark_number.set(self.image_processor.count_dark_pollens)
             txt = self.dark_number.get()
+
+            # change image to dark pollens detected
+            self.displayImage()
             self.updateCount(txt, self.dark_header)
+
+    def resetImage(self):
+        self.image_processor.resetDisplayImage()
+        self.displayImage()
 
     def updateCount(self, count, header):
         header.configure(text=count, justify="center")
         header.grid(row=0, column=0, padx=3, pady=3)
+
+    def updatePadding(self, val):
+        self.count_dark_button.grid(row=4, column=0, padx=20, pady=(
+            10, val*0.475))
 
     def displayImage(self):
         im = Image.fromarray(self.image_processor.display_img)
         self.img = ImageTk.PhotoImage(image=im)
         label = Label(self.image_frame, image=self.img)
         label.grid(row=0, column=0, padx=3, pady=3, sticky="nesw")
+        self.updatePadding(label.winfo_reqheight())
