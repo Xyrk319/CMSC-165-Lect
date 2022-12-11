@@ -28,12 +28,16 @@ class GUI:
         self.light_frame = CTkFrame(self.sidebar_frame, width=160, height=32)
         self.dark_frame = CTkFrame(self.sidebar_frame, width=160, height=32)
 
-        self.header1 = CTkLabel(self.sidebar_frame, text="Statistics:", font=self.header_font)
-        self.light_header = CTkLabel(self.light_frame, text=self.light_number, font=self.count_font)
-        self.dark_header = CTkLabel(self.dark_frame, text=self.dark_number, font=self.count_font)
+        self.header1 = CTkLabel(
+            self.sidebar_frame, text="Statistics:", font=self.header_font)
+        self.light_header = CTkLabel(
+            self.light_frame, text=self.light_number, font=self.count_font)
+        self.dark_header = CTkLabel(
+            self.dark_frame, text=self.dark_number, font=self.count_font)
 
         # buttons
-        self.file_btn = CTkButton(self.window, text="Open File", font=self.normal_font, command=self.fileOpener)
+        self.file_btn = CTkButton(
+            self.window, text="Open File", font=self.normal_font, command=self.fileOpener)
         self.count_light_button = CTkButton(
             self.sidebar_frame, text="Count Light Pollen", font=self.normal_font, command=self.countLight
         )
@@ -44,7 +48,8 @@ class GUI:
     def draw(self):
         self.window.title("CMSC 165 - Lecture Project")
 
-        self.image_frame.grid(sticky="w", row=0, column=0, columnspan=4, padx=20, pady=20)
+        self.image_frame.grid(sticky="w", row=0, column=0,
+                              columnspan=4, padx=20, pady=20)
         # self.image_frame.grid_propagate(False)
         self.sidebar_frame.grid(row=0, column=4, rowspan=4, sticky="nesw")
         self.sidebar_frame.grid_propagate(False)
@@ -69,7 +74,8 @@ class GUI:
         filename = filedialog.askopenfilename(
             initialdir="./assets/",
             title="Select a File",
-            filetypes=(("JPG Files", "*.jpg"), ("JPEG Files", "*.jpeg"), ("PNG Files", "*.png")),
+            filetypes=(("JPG Files", "*.jpg"), ("JPEG Files",
+                       "*.jpeg"), ("PNG Files", "*.png")),
         )
 
         # if the file open is succesful
@@ -87,13 +93,17 @@ class GUI:
 
     def countLight(self):
         if self.input_image != False:
-            self.light_number.set(100)  # connect to backend to get value
+            self.image_processor.countLightPollens()
+            # connect to backend to get value
+            self.light_number.set(self.image_processor.count_light_pollens)
             txt = self.light_number.get()
             self.updateCount(txt, self.light_header)
 
     def countDark(self):
         if self.input_image != False:
-            self.dark_number.set(300)  # connect to backend to get value
+            # connect to backend to get value
+            self.image_processor.countDarkPollens()
+            self.dark_number.set(self.image_processor.count_dark_pollens)
             txt = self.dark_number.get()
             self.updateCount(txt, self.dark_header)
 
